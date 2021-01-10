@@ -1,0 +1,2 @@
+class NoRootNode(Exception):
+    pass
