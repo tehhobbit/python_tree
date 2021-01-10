@@ -29,34 +29,21 @@ def test_root_node_set_but_no_parent():
     assert e.value.args[0] == "There is a root node but you have not given a parent for new node"
 
 
-def test_filter_always_true():
-    tree = Tree()
+@pytest.mark.parametrize("fn,result", [
+    (lambda x: True, 2),
+    (lambda x: False, 0),
+    (lambda x: x.name == "Test", 1),
+])
+def test_filter(fn, result):
     node = Node("Test")
-    tree.add_node(node)
     node2 = Node("Test2")
+    result_data = [node, node2]
+    tree = Tree()
+    tree.add_node(node)
     node.add_child(node2)
-    data = tree.filter(lambda x: True)
-    assert data == [node, node2]
-
-
-def test_filter_always_false():
-    tree = Tree()
-    node = Node("Test")
-    tree.add_node(node)
-    node2 = Node("Test2")
-    node.add_child(node2)
-    data = tree.filter(lambda x: False)
-    assert data == []
-
-
-def test_filter_match_one_node():
-    tree = Tree()
-    node = Node("Test")
-    tree.add_node(node)
-    node2 = Node("Test2")
-    tree.add_node(node2, parent=node)
-    data = tree.filter(lambda x: x.name == "Test2")
-    assert data == [node2]
+    data = tree.filter(fn)
+    assert len(data) == result
+    assert data == result_data[:result]
 
 
 def test_filter_without_root():
@@ -64,3 +51,17 @@ def test_filter_without_root():
     with pytest.raises(NoRootNode) as e:
         tree.filter(lambda x: True)
     assert e.value.args[0] == "There is no root node"
+
+
+def test_map():
+    tree = Tree()
+    node = Node("Test")
+    tree.add_node(node)
+    node2 = Node("Test2")
+    tree.add_node(node2, parent=node)
+
+    def mapper(node: Node) -> None:
+        node.data = 2
+    tree = tree.map(mapper)
+    for node in tree.all_nodes:
+        assert node.data == 2
