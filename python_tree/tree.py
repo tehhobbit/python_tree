@@ -1,3 +1,4 @@
+from __future__ import annotations
 from python_tree.node import Node, BaseNode
 from python_tree.exceptions import NoRootNode
 from typing import Optional, List, Callable
@@ -45,11 +46,19 @@ class Tree:
         """
         if not self.root:
             raise NoRootNode("There is no root node")
-        return self._filter_nodes(fn=fn, root_node=self.root, nodes=[])
+        return [node for node in self.all_nodes if fn(node)]
 
-    def _filter_nodes(self, fn: Callable, root_node: BaseNode, nodes: List[BaseNode]) -> List[BaseNode]:
-        if fn(root_node):
-            nodes.append(root_node)
-        for child in root_node.children:
-            nodes = self._filter_nodes(fn=fn, root_node=child, nodes=nodes)
-        return nodes
+    def map(self, fn: Callable) -> Tree:
+        if not self.root:
+            raise NoRootNode("There is no root node")
+        [fn(node) for node in self.all_nodes]
+        return self
+
+    @property
+    def all_nodes(self):
+        return self._get_all_nodes(self.root)
+
+    def _get_all_nodes(self, root):
+        yield root
+        for child in root.children:
+            yield from self._get_all_nodes(child)
